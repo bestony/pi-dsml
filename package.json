@@ -1,0 +1,64 @@
+{
+  "name": "pi-dsml",
+  "version": "0.0.1",
+  "description": "Pi package: recovers DeepSeek DSML tool calls that arrive as plain assistant text and executes them as real tool calls.",
+  "license": "MIT",
+  "author": "bestony",
+  "type": "module",
+  "keywords": [
+    "pi-package",
+    "pi",
+    "pi-agent",
+    "pi-coding-agent",
+    "extension",
+    "dsml",
+    "deepseek",
+    "tool-calls"
+  ],
+  "files": [
+    "extensions",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "exports": {
+    ".": "./src/index.ts",
+    "./extension": "./extensions/index.ts",
+    "./package.json": "./package.json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bestony/pi-dsml.git"
+  },
+  "bugs": {
+    "url": "https://github.com/bestony/pi-dsml/issues"
+  },
+  "homepage": "https://github.com/bestony/pi-dsml#readme",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+  "pi": {
+    "extensions": [
+      "./extensions/index.ts"
+    ]
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "check": "npm run typecheck && npm test"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-coding-agent": "^0.86.1",
+    "@types/node": "^22.10.0",
+    "typescript": "^5.6.0",
+    "vitest": "^4.1.9"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
