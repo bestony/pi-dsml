@@ -1,0 +1,64 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: read
+  id-token: write # required for npm trusted publishing (OIDC)
+
+jobs:
+  publish:
+    name: Publish to npm
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+          package-manager-cache: false # never use caching in release builds
+
+      # Trusted publishing requires npm >= 11.5.1.
+      - name: Ensure npm supports trusted publishing
+        run: |
+          npm install -g npm@latest
+          npm --version
+
+      # Must run before the version is rewritten, otherwise package.json and
+      # package-lock.json drift apart and `npm ci` fails.
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck and test
+        run: npm run check
+
+      - name: Resolve version from tag
+        id: version
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#v}"
+          if [ -z "$version" ]; then
+            echo "Could not derive a version from tag '$GITHUB_REF_NAME'" >&2
+            exit 1
+          fi
+          # Pre-release versions (e.g. 0.1.0-beta.1) must not take over `latest`.
+          if printf '%s' "$version" | grep -q -- '-'; then
+            dist_tag=next
+          else
+            dist_tag=latest
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "dist_tag=$dist_tag" >> "$GITHUB_OUTPUT"
+          echo "Publishing $version under dist-tag $dist_tag"
+
+      # Applied on the runner only; never committed back to main.
+      - name: Write version into package.json
+        run: npm version "${{ steps.version.outputs.version }}" --no-git-tag-version --allow-same-version
+
+      # No NODE_AUTH_TOKEN and no --provenance: both are handled by OIDC.
+      - name: Publish
+        run: npm publish --tag "${{ steps.version.outputs.dist_tag }}"
